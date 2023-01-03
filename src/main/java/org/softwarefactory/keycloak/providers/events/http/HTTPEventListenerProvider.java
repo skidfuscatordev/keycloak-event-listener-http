@@ -189,12 +189,18 @@ public class HTTPEventListenerProvider implements EventListenerProvider {
         }
         sb.append(", \"details\": {");
         if (event.getDetails() != null) {
-            for (Map.Entry<String, String> e : event.getDetails().entrySet()) {
+            Map.Entry<String, String>[] entries = (Map.Entry<String,String>[])event.getDetails().entrySet().toArray();
+            for (int i = 0; i < entries.length;  i++) {
+                Map.Entry<String, String> e = entries[i];
                 sb.append("\"");
                 sb.append(e.getKey());
                 sb.append("\": \"");
                 sb.append(e.getValue());
-                sb.append("\", ");
+                if(i != entries.length - 1) {
+                    sb.append("\", ");
+                } else {
+                    sb.append("\"");
+                }
             }
         }
         sb.append("}}");
