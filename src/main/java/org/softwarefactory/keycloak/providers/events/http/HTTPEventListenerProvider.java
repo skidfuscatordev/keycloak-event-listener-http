@@ -36,7 +36,7 @@ import java.io.IOException;
  * @author <a href="mailto:jessy.lenne@stadline.com">Jessy Lenne</a>
  */
 public class HTTPEventListenerProvider implements EventListenerProvider {
-	private final OkHttpClient httpClient = new OkHttpClient();
+    private final OkHttpClient httpClient = new OkHttpClient();
     private Set<EventType> excludedUserEvents;
     private Set<EventType> includedUserEvents;
     private Set<OperationType> excludedAdminEvents;
@@ -49,7 +49,10 @@ public class HTTPEventListenerProvider implements EventListenerProvider {
     public static final String publisherId = "keycloak";
     public String TOPIC;
 
-    public HTTPEventListenerProvider(Set<EventType> excludedUserEvents, Set<OperationType> excludedAdminEvents, Set<EventType> includedUserEvents, Set<OperationType> includedAdminEvents, String[] adminEventResourcePathPrefixes, Boolean includeAdminEventRepresentation, String serverUri, String username, String password, String topic) {
+    public HTTPEventListenerProvider(Set<EventType> excludedUserEvents, Set<OperationType> excludedAdminEvents,
+            Set<EventType> includedUserEvents, Set<OperationType> includedAdminEvents,
+            String[] adminEventResourcePathPrefixes, Boolean includeAdminEventRepresentation, String serverUri,
+            String username, String password, String topic) {
         this.excludedUserEvents = excludedUserEvents;
         this.excludedAdminEvents = excludedAdminEvents;
         this.includedUserEvents = includedUserEvents;
@@ -63,8 +66,8 @@ public class HTTPEventListenerProvider implements EventListenerProvider {
     }
 
     @Override
-    public void onEvent(Event event) {        
-        if (includedUserEvents != null && !includedUserEvents.contains(event.getType())){
+    public void onEvent(Event event) {
+        if (includedUserEvents != null && !includedUserEvents.contains(event.getType())) {
             return;
         }
 
@@ -74,31 +77,30 @@ public class HTTPEventListenerProvider implements EventListenerProvider {
         } else {
             String stringEvent = toString(event);
             try {
-            	RequestBody formBody = new FormBody.Builder()
+                RequestBody formBody = new FormBody.Builder()
                         .add("json", stringEvent)
                         .build();
 
                 okhttp3.Request.Builder builder = new Request.Builder()
                         .url(this.serverUri)
                         .addHeader("User-Agent", "KeycloakHttp Bot");
-            	
 
                 if (this.username != null && this.password != null) {
-                	builder.addHeader("Authorization", "Basic " + this.username + ":" + this.password.toCharArray());
+                    builder.addHeader("Authorization", "Basic " + this.username + ":" + this.password.toCharArray());
                 }
-                
+
                 Request request = builder.post(formBody)
                         .build();
-                
-            	Response response = httpClient.newCall(request).execute();
-            	
-            	if (!response.isSuccessful()) {
-            		throw new IOException("Unexpected code " + response);
-            	}
+
+                Response response = httpClient.newCall(request).execute();
+
+                if (!response.isSuccessful()) {
+                    throw new IOException("Unexpected code " + response);
+                }
 
                 // Get response body
                 System.out.println(response.body().string());
-            } catch(Exception e) {
+            } catch (Exception e) {
                 // ?
                 System.out.println("UH OH!! " + e.toString());
                 e.printStackTrace();
@@ -109,13 +111,13 @@ public class HTTPEventListenerProvider implements EventListenerProvider {
 
     @Override
     public void onEvent(AdminEvent event, boolean includeRepresentation) {
-        if (includedAdminEvents != null && !includedAdminEvents.contains(event.getOperationType())){
+        if (includedAdminEvents != null && !includedAdminEvents.contains(event.getOperationType())) {
             return;
         }
 
         if (adminEventResourcePathPrefixes != null && adminEventResourcePathPrefixes.length > 0) {
             boolean found = false;
-            for(String prefix :  adminEventResourcePathPrefixes) {
+            for (String prefix : adminEventResourcePathPrefixes) {
                 String resourcePath = event.getResourcePath();
                 if (resourcePath != null && resourcePath.startsWith(prefix)) {
                     found = true;
@@ -133,31 +135,30 @@ public class HTTPEventListenerProvider implements EventListenerProvider {
         } else {
             String stringEvent = toString(event);
             try {
-            	RequestBody formBody = new FormBody.Builder()
+                RequestBody formBody = new FormBody.Builder()
                         .add("json", stringEvent)
                         .build();
 
                 okhttp3.Request.Builder builder = new Request.Builder()
                         .url(this.serverUri)
                         .addHeader("User-Agent", "KeycloakHttp Bot");
-            	
 
                 if (this.username != null && this.password != null) {
-                	builder.addHeader("Authorization", "Basic " + this.username + ":" + this.password.toCharArray());
+                    builder.addHeader("Authorization", "Basic " + this.username + ":" + this.password.toCharArray());
                 }
-                
+
                 Request request = builder.post(formBody)
                         .build();
-                
-            	Response response = httpClient.newCall(request).execute();
-            	
-            	if (!response.isSuccessful()) {
-            		throw new IOException("Unexpected code " + response);
-            	}
+
+                Response response = httpClient.newCall(request).execute();
+
+                if (!response.isSuccessful()) {
+                    throw new IOException("Unexpected code " + response);
+                }
 
                 // Get response body
                 System.out.println(response.body().string());
-            } catch(Exception e) {
+            } catch (Exception e) {
                 // ?
                 System.out.println("UH OH!! " + e.toString());
                 e.printStackTrace();
@@ -165,7 +166,6 @@ public class HTTPEventListenerProvider implements EventListenerProvider {
             }
         }
     }
-
 
     private String toString(Event event) {
         StringBuilder sb = new StringBuilder();
@@ -189,14 +189,15 @@ public class HTTPEventListenerProvider implements EventListenerProvider {
         }
         sb.append(", \"details\": {");
         if (event.getDetails() != null) {
-            Map.Entry<String, String>[] entries = (Map.Entry<String,String>[])event.getDetails().entrySet().toArray();
-            for (int i = 0; i < entries.length;  i++) {
-                Map.Entry<String, String> e = entries[i];
+            String[] keys = event.getDetails().keySet().toArray(new String[0]);
+            for (int i = 0; i < keys.length; i++) {
+                String key = keys[i];
+                String value = event.getDetails().get(key);
                 sb.append("\"");
-                sb.append(e.getKey());
+                sb.append(key);
                 sb.append("\": \"");
-                sb.append(e.getValue());
-                if(i != entries.length - 1) {
+                sb.append(value);
+                if (i != keys.length - 1) {
                     sb.append("\", ");
                 } else {
                     sb.append("\"");
@@ -207,8 +208,7 @@ public class HTTPEventListenerProvider implements EventListenerProvider {
 
         return sb.toString();
     }
-    
-    
+
     private String toString(AdminEvent adminEvent) {
         StringBuilder sb = new StringBuilder();
 
@@ -223,15 +223,15 @@ public class HTTPEventListenerProvider implements EventListenerProvider {
         sb.append("\", \"userId\": \"");
         sb.append(adminEvent.getAuthDetails().getUserId());
         sb.append("\", \"ipAddress\": \"");
-        sb.append(adminEvent.getAuthDetails().getIpAddress());        
+        sb.append(adminEvent.getAuthDetails().getIpAddress());
         sb.append("\", \"resourcePath\": \"");
         sb.append(adminEvent.getResourcePath());
         sb.append("\"");
 
-        if(includeAdminEventRepresentation && (type == OperationType.CREATE 
-                                            || type == OperationType.UPDATE )) {
+        if (includeAdminEventRepresentation && (type == OperationType.CREATE
+                || type == OperationType.UPDATE)) {
             String representation = adminEvent.getRepresentation();
-            if(representation != null) {
+            if (representation != null) {
                 sb.append(", \"representation\": ");
                 sb.append(representation);
             }
